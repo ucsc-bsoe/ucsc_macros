@@ -1,0 +1,5 @@
+macros:
+  version: 1.x
+  css:
+    theme:
+      ucsc_macros.css: {}

@@ -1,0 +1,323 @@
+<?php
+
+
+function ucsc_macros_preprocess_page(&$variables) {
+  $variables['#attached']['library'][] =  'ucsc_macros/macros';
+}
+
+function ucsc_macros_do_contact($matches) {
+  $ldap = ldap_connect("ldaps://ldap-99.soe.ucsc.edu");
+
+  $search = ldap_search(
+    $ldap,
+    "ou=People,dc=soe,dc=ucsc,dc=edu",
+    "uid=" . $matches[1]
+  );
+
+  if (!$search) {
+    return
+      "<b>ERROR:</b> Could not search the LDAP server for user <b>" .
+      $matches[1] .
+      "</b>.";
+  }
+
+  $entries = ldap_get_entries(
+    $ldap,
+    $search
+  );
+
+  if ($entries["count"] != 1) {
+    return
+      "<b>ERROR:</b> Could not retrieve information from the LDAP server for user <b>" .
+      $matches[1] .
+      "</b>.";
+  }
+
+  $content =
+    $entries[0]["cn"][0] .
+    ", e-mail: " .
+    "<a href='mailto:" .
+    $entries[0]["mail"][0] .
+    "'>" .
+    $entries[0]["mail"][0] .
+    "</a>";
+
+  if ($entries[0]["telephonenumber"][0] != "") {
+    $content =
+      $content .
+      ", phone: " .
+      $entries[0]["telephonenumber"][0];
+  }
+
+  return $content;
+}
+
+function ucsc_macros_do_google_calendar($matches) {
+  return
+    "<iframe class=\"google-calendar\" src=\"https://www.google.com/calendar/embed?mode=agenda&src=" .
+    urlencode(strtolower($matches[1])) .
+    "&ctz=PST8PDT\"></iframe>";
+}
+
+function ucsc_macros_do_youtube($matches) {
+  return
+
+  "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/" .
+  $matches[1] .
+  "\" frameborder=\"0\" allow=\"autoplay; encrypted-media\" allowfullscreen></iframe>";
+//    "<div class=\"video\"><object width=\"425\" height=\"344\"><param name=\"movie\" value=\"http://www.youtube.com/v/" .
+//    urlencode($matches[1]) .
+//    "&hl=en_US&fs=1&\"></param><param name=\"allowFullScreen\" value=\"true\"></param><param name=\"allowscriptaccess\" value=\"always\"></param><embed src=\"http://www.youtube.com/v/" .
+//    urlencode($matches[1]) .
+//    "&hl=en_US&fs=1&\" type=\"application/x-shockwave-flash\" allowscriptaccess=\"always\" allowfullscreen=\"true\" width=\"425\" height=\"344\"></embed></object></div>\n";
+}
+
+function ucsc_macros_do_course($matches) {
+  $course = $matches[1];
+
+  preg_match(
+    "/([a-z]+)([0-9]+)([a-z]?)/",
+    strtolower($course),
+    $matches
+  );
+
+  $department = trim($matches[1]);
+  $number = trim($matches[2] * 1);
+  $letter = trim($matches[3]);
+
+  if (($department == "") or ($number == "")) {
+    return "<strong>Macro Error: No department or course number was supplied.</strong>";
+  }
+
+  return
+    "<a href=\"https://courses.soe.ucsc.edu/courses/" .
+    strtolower(
+      $department .
+      $number .
+      $letter
+    ) .
+    "\">" .
+        $department .
+        $number .
+        $letter .
+    "</a>";
+}
+
+function ucsc_macros_do_user($matches) {
+  $ldap = ldap_connect("ldaps://ldap-99.soe.ucsc.edu");
+
+  $search = ldap_search(
+    $ldap,
+    "ou=People,dc=soe,dc=ucsc,dc=edu",
+    "uid=" . $matches[1]
+  );
+
+  if (!$search) {
+    return
+      "<b>ERROR:</b> Could not search the LDAP server for user <b>" .
+      $matches[1] .
+      "</b>.";
+  }
+
+  $entries = ldap_get_entries(
+    $ldap,
+    $search
+  );
+
+  if ($entries["count"] != 1) {
+    return
+      "<b>ERROR:</b> Could not retrieve information from the LDAP server for user <b>" .
+      $matches[1] .
+      "</b>.";
+  }
+
+  $content =
+    "<b><a href=\"https://www.soe.ucsc.edu/people/" .
+    urlencode($entries[0]["uid"][0]) .
+    "\">" .
+    $entries[0]["cn"][0] .
+    "</a></b><br />\n";
+
+  if (!empty($entries[0]["title"]["count"])) {
+    for ($x = 0; $x < $entries[0]["title"]["count"]; $x++) {
+      $content =
+        $content .
+        $entries[0]["title"][$x] .
+        "<br />\n";
+    }
+  }
+
+  if (!empty($entries[0]["mail"]["count"])) {
+    for ($x = 0; $x < $entries[0]["mail"]["count"]; $x++) {
+      $content =
+        $content .
+          $entries[0]["mail"][$x];
+    }
+  }
+
+  if (!empty($entries[0]["telephonenumber"]["count"])) {
+    for ($x = 0; $x < $entries[0]["telephonenumber"]["count"]; $x++) {
+      $content =
+        $content .
+        $entries[0]["telephonenumber"][$x] .
+        "<br />\n";
+    }
+  }
+
+  if (!empty($entries[0]["roomnumber"]["count"])) {
+    for ($x = 0; $x < $entries[0]["roomnumber"]["count"]; $x++) {
+      $content =
+        $content .
+        $entries[0]["roomnumber"][$x] .
+        "<br />\n";
+    }
+  }
+
+  if (!empty($entries[0]["soeofficehours"]["count"])) {
+    for ($x = 0; $x < $entries[0]["soeofficehours"]["count"]; $x++) {
+      $content =
+        $content .
+        $entries[0]["soeofficehours"][$x] .
+        "<br />\n";
+    }
+  }
+
+  return $content;
+}
+
+function ucsc_macros_do_e_mail($matches) {
+  $ldap = ldap_connect("ldaps://ldap-99.soe.ucsc.edu");
+
+  $search = ldap_search(
+    $ldap,
+    "ou=People,dc=soe,dc=ucsc,dc=edu",
+    "uid=" . $matches[1]
+  );
+
+  if (!$search) {
+    return
+      "<b>ERROR:</b> Could not search the LDAP server for user <b>" .
+      $matches[1] .
+      "</b>.";
+  }
+
+  $entries = ldap_get_entries(
+    $ldap,
+    $search
+  );
+
+  if ($entries["count"] != 1) {
+    return
+      "<b>ERROR:</b> Could not retrieve information from the LDAP server for user <b>" .
+      $matches[1] .
+      "</b>.";
+  }
+
+  return
+    "<a href='mailto:" .
+  $entries[0]["mail"][0] .
+  "'>" .
+  $entries[0]["mail"][0] .
+  "</a>";
+}
+
+function ucsc_macros_do_link($matches) {
+  $ldap = ldap_connect("ldaps://ldap-99.soe.ucsc.edu");
+
+  $search = ldap_search(
+    $ldap,
+    "ou=People,dc=soe,dc=ucsc,dc=edu",
+    "uid=" . $matches[1]
+  );
+
+  if (!$search) {
+    return
+      "<b>ERROR:</b> Could not search the LDAP server for user <b>" .
+      $matches[1] .
+      "</b>.";
+  }
+
+  $entries = ldap_get_entries(
+    $ldap,
+    $search
+  );
+
+  if ($entries["count"] != 1) {
+    return
+      "<b>ERROR:</b> Could not retrieve information from the LDAP server for user <b>" .
+      $matches[1] .
+      "</b>.";
+  }
+
+  return
+    "<a href=\"https://www.soe.ucsc.edu/people/" .
+    urlencode($entries[0]["uid"][0]) .
+    "\">" .
+    $entries[0]["cn"][0] .
+    "</a>";
+}
+
+function ucsc_macros_do_photo($matches) {
+  $uid = $matches[1];
+
+  $ldap = ldap_connect("ldap://ldap-99.soe.ucsc.edu");
+
+  $search = ldap_search(
+    $ldap,
+    "ou=People,dc=soe,dc=ucsc,dc=edu",
+    "uid=" . $uid,
+    array("jpegphoto")
+  );
+
+  if (!$search) {
+    return "<p><strong>ERROR:</strong> Could not search the directory server for a photo.</p>\n";
+  }
+
+  $entries = ldap_get_entries(
+    $ldap,
+    $search
+  );
+
+  if (empty($entries[0]["jpegphoto"]["count"])) {
+    return "";
+  }
+
+  return
+    "<img src=\"https://www.soe.ucsc.edu/people/" .
+    $uid .
+    "/photo/0\" alt=\"" .
+    $entries[0]["cn"][0] .
+    "\" class=\"plain\">\n";
+}
+
+//function ucsc_macros_do_biography($matches) {
+//  $uid = $matches[1];
+//
+//  $ldap = ldap_connect("ldaps://ldap-99.soe.ucsc.edu");
+//
+//  $search = ldap_search(
+//    $ldap,
+//    "ou=People,dc=soe,dc=ucsc,dc=edu",
+//    "uid=" . $matches[1],
+//    array("soeBiography")
+//  );
+//
+//  if (!$search) {
+//    return
+//      "<b>ERROR:</b> Could not search the LDAP server for user <b>" .
+//      $matches[1] .
+//      "</b>.";
+//  }
+//
+//  $entries = ldap_get_entries(
+//    $ldap,
+//    $search
+//  );
+//
+//  return
+//    $entries[0]["soebiography"][0];
+//}
+
+//function ucsc_macros_do_counter() {
+//  return "<img src=\"https://www.soe.ucsc.edu/cgi-bin/Count.cgi\" style=\"border: none; float: none; display: inline; padding: 2px; margin: 0px;\">";
+//}

@@ -1,0 +1,6 @@
+name: Macros
+type: module
+description: Enables the use of <a href="http://support.soe.ucsc.edu/web/macros" target="_blank">BSOE web site macros</a>.
+core: 8.x
+version: 0.1
+package: UCSC
