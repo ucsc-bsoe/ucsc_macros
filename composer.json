@@ -1,0 +1,15 @@
+{
+  "name": "drupal/ucsc_macros",
+  "description": "UCSC Macros so people can use patterns to populate users.",
+  "type": "drupal-custom-module",
+  "homepage": "https://github.com/ucsc-bsoe/ucsc_macros",
+  "authors": [
+    {
+      "name": "Kristin Bradham",
+      "homepage": "https://www.drupal.org/u/kristindev",
+      "role": "Maintainer"
+    }
+  ],
+  "license": "GPL-2.0-or-later",
+  "minimum-stability": "dev"
+}
